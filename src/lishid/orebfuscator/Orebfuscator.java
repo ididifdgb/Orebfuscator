@@ -21,6 +21,7 @@ public class Orebfuscator extends JavaPlugin {
     public static boolean usingSpout = false;
     public static Orebfuscator mainPlugin;
     public static long lastSentPacket = System.currentTimeMillis() / 1000L;
+    public static long lastPacketSentAttempt = (System.currentTimeMillis() / 1000L);
 
     public Orebfuscator() {
     }

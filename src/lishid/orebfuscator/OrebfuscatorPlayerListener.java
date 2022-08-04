@@ -13,6 +13,7 @@ import java.util.Iterator;
 import com.legacyminecraft.poseidon.PoseidonPlugin;
 import com.legacyminecraft.poseidon.event.PlayerSendPacketEvent;
 import com.legacyminecraft.poseidon.event.PoseidonCustomListener;
+import com.sun.org.apache.xpath.internal.operations.Or;
 import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.OrebfuscatorCalculationThread;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
@@ -49,6 +50,7 @@ public class OrebfuscatorPlayerListener implements PoseidonCustomListener {
     public void onSendPacket(PlayerSendPacketEvent event) {
         if (event.getPacketID() == 51 && event.getUsername() != null && Bukkit.getPlayer(event.getUsername()) != null) {
             event.setCancelled(true); //Orbfuscator will worry about dispatching the packet
+            Orebfuscator.lastPacketSentAttempt = (System.currentTimeMillis() / 1000L); //Reset the last packet sent attempt
             if (!OrebfuscatorCalculationThread.CheckThreads()) {
                 OrebfuscatorCalculationThread.SyncThreads();
             }
@@ -62,15 +64,18 @@ public class OrebfuscatorPlayerListener implements PoseidonCustomListener {
 //        this.TryUpdateNetServerHandler(event.getPlayer());
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-            long currentTime = (System.currentTimeMillis() / 1000L);
-            if (currentTime - Orebfuscator.lastSentPacket > 60) {
+//            long currentTime = (System.currentTimeMillis() / 1000L);
+            if(Bukkit.getOnlinePlayers().length == 0) {
+                return;
+            }
+            if (Orebfuscator.lastPacketSentAttempt - Orebfuscator.lastSentPacket > 10) {
                 System.out.println("Oreobfuscator is restarting the server as it most likely has stopped sending packets or something. I hate this fucking plugin so much");
 
                 ((CraftServer) Bukkit.getServer()).setShuttingdown(true);
 
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     player.saveData();
-                    player.kickPlayer(ChatColor.RED + "Server is shutting down, please rejoin later.");
+                    player.kickPlayer(ChatColor.RED + "Server is restarting to resolve issues. Please rejoin shortly.");
                 }
                 for (World world : Bukkit.getWorlds()) {
                     world.save();
