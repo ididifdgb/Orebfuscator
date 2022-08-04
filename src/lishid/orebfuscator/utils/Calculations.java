@@ -6,18 +6,21 @@
 package lishid.orebfuscator.utils;
 
 import gnu.trove.set.hash.TByteHashSet;
+
 import java.lang.reflect.Field;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.zip.Deflater;
+
 import lishid.orebfuscator.Orebfuscator;
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.NetworkManager;
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
 import net.minecraft.server.TileEntity;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
@@ -37,13 +40,13 @@ public class Calculations {
     }
 
     public static void UpdateBlocksNearby(Block block) {
-        if (OrebfuscatorConfig.Enabled() && !OrebfuscatorConfig.isTransparent((byte)block.getTypeId())) {
+        if (OrebfuscatorConfig.Enabled() && !OrebfuscatorConfig.isTransparent((byte) block.getTypeId())) {
             HashSet<Block> blocks = GetAjacentBlocks(block.getWorld(), new HashSet(), block, OrebfuscatorConfig.UpdateRadius());
             UpdateBlock(block);
             Iterator var2 = blocks.iterator();
 
-            while(var2.hasNext()) {
-                Block nearbyBlock = (Block)var2.next();
+            while (var2.hasNext()) {
+                Block nearbyBlock = (Block) var2.next();
                 UpdateBlock(nearbyBlock);
             }
 
@@ -67,7 +70,7 @@ public class Calculations {
 
     public static void AddBlockCheck(HashSet<Block> allBlocks, Block block) {
         if (block != null) {
-            if (OrebfuscatorConfig.isObfuscated((byte)block.getTypeId()) || OrebfuscatorConfig.isDarknessObfuscated((byte)block.getTypeId())) {
+            if (OrebfuscatorConfig.isObfuscated((byte) block.getTypeId()) || OrebfuscatorConfig.isDarknessObfuscated((byte) block.getTypeId())) {
                 allBlocks.add(block);
             }
 
@@ -79,17 +82,17 @@ public class Calculations {
             HashSet<CraftPlayer> players = new HashSet();
             Iterator var2 = block.getWorld().getPlayers().iterator();
 
-            while(var2.hasNext()) {
-                Player player = (Player)var2.next();
-                if (Math.abs(player.getLocation().getX() - (double)block.getX()) < 176.0D && Math.abs(player.getLocation().getZ() - (double)block.getZ()) < 176.0D) {
-                    players.add((CraftPlayer)player);
+            while (var2.hasNext()) {
+                Player player = (Player) var2.next();
+                if (Math.abs(player.getLocation().getX() - (double) block.getX()) < 176.0D && Math.abs(player.getLocation().getZ() - (double) block.getZ()) < 176.0D) {
+                    players.add((CraftPlayer) player);
                 }
             }
 
             var2 = players.iterator();
 
-            while(var2.hasNext()) {
-                CraftPlayer player2 = (CraftPlayer)var2.next();
+            while (var2.hasNext()) {
+                CraftPlayer player2 = (CraftPlayer) var2.next();
                 player2.sendBlockChange(block.getLocation(), block.getTypeId(), block.getData());
             }
 
@@ -104,7 +107,7 @@ public class Calculations {
             if (y < info.sizeY && y >= 0 && x < info.sizeX && x >= 0 && z < info.sizeZ && z >= 0 && index > 0 && info.original.length > index) {
                 id = info.original[index];
             } else if (info.startY >= 0) {
-                id = (byte)info.world.getTypeId(x + info.startX, y + info.startY, z + info.startZ);
+                id = (byte) info.world.getTypeId(x + info.startX, y + info.startY, z + info.startZ);
             }
 
             if (!IDPool.contains(id) && OrebfuscatorConfig.isTransparent(id)) {
@@ -141,15 +144,15 @@ public class Calculations {
         int index;
         int x;
         int y;
-        if (info.world.getWorld().getEnvironment() == Environment.NORMAL && !OrebfuscatorConfig.worldDisabled(info.world.getServer().getName()) && (!OrebfuscatorConfig.NoObfuscationForPermission() || !PermissionRelay.hasPermission(player, "Orebfuscator.deobfuscate")) && (!OrebfuscatorConfig.NoObfuscationForOps() || !player.isOp()) && OrebfuscatorConfig.Enabled()) {
+        if (info.world.getWorld().getEnvironment() == Environment.NORMAL && !OrebfuscatorConfig.worldDisabled(info.world.getServer().getName()) && OrebfuscatorConfig.Enabled()) {
             info.original = new byte[packet.rawData.length];
             System.arraycopy(packet.rawData, 0, info.original, 0, packet.rawData.length);
             if (info.sizeY > 1) {
                 index = 0;
 
-                for(x = 0; x < info.sizeX; ++x) {
-                    for(int z = 0; z < info.sizeZ; ++z) {
-                        for(y = 0; y < info.sizeY; ++y) {
+                for (x = 0; x < info.sizeX; ++x) {
+                    for (int z = 0; z < info.sizeZ; ++z) {
+                        for (y = 0; y < info.sizeY; ++y) {
                             boolean Obfuscate = false;
                             blockList.clear();
                             if (OrebfuscatorConfig.isObfuscated(info.original[index])) {
@@ -197,7 +200,7 @@ public class Calculations {
         packet.h = x;
         System.arraycopy(deflateBuffer, 0, packet.g, 0, x);
 
-        while(!GetNetworkManagerQueue(handler.networkManager, 1048576 - 2 * (18 + packet.h))) {
+        while (!GetNetworkManagerQueue(handler.networkManager, 1048576 - 2 * (18 + packet.h))) {
             try {
                 Thread.sleep(5L);
             } catch (Exception var11) {
@@ -205,10 +208,12 @@ public class Calculations {
         }
 
         handler.networkManager.queue(packet);
+        Bukkit.getServer().getScheduler().callSyncMethod(Orebfuscator.mainPlugin, () -> Orebfuscator.lastSentPacket = (System.currentTimeMillis() / 1000L));
+
         Object[] list = info.world.getTileEntities(info.startX, info.startY, info.startZ, info.startX + info.sizeX, info.startY + info.sizeY, info.startZ + info.sizeZ).toArray();
 
-        for(y = 0; y < list.length; ++y) {
-            TileEntity tileentity = (TileEntity)list[y];
+        for (y = 0; y < list.length; ++y) {
+            TileEntity tileentity = (TileEntity) list[y];
             if (tileentity != null) {
                 Packet p = tileentity.f();
                 if (p != null) {
@@ -241,7 +246,7 @@ public class Calculations {
             byte[] messageDigest = algorithm.digest();
             StringBuffer hexString = new StringBuffer();
 
-            for(int i = 0; i < messageDigest.length; ++i) {
+            for (int i = 0; i < messageDigest.length; ++i) {
                 hexString.append(Integer.toHexString(255 & messageDigest[i]));
             }
 

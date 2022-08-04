@@ -7,17 +7,16 @@ package lishid.orebfuscator.utils;
 
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
+
 import net.minecraft.server.Packet51MapChunk;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 public class OrebfuscatorCalculationThread extends Thread implements Runnable {
     private boolean kill = false;
-    private static final int QUEUE_CAPACITY = 10240;
-    private static ArrayList<OrebfuscatorCalculationThread> threads = new ArrayList();
-    private static final LinkedBlockingDeque<ObfuscatedPlayerPacket> queue = new LinkedBlockingDeque(10240);
-
-    public OrebfuscatorCalculationThread() {
-    }
+    //Global
+    private static final int QUEUE_CAPACITY = 1024 * 10;
+    private static ArrayList<OrebfuscatorCalculationThread> threads = new ArrayList<OrebfuscatorCalculationThread>();
+    private static final LinkedBlockingDeque<ObfuscatedPlayerPacket> queue = new LinkedBlockingDeque<ObfuscatedPlayerPacket>(QUEUE_CAPACITY);
 
     public static int getThreads() {
         return threads.size();
@@ -28,54 +27,59 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable {
     }
 
     public static void SyncThreads() {
-        if (threads.size() != OrebfuscatorConfig.ProcessingThreads()) {
-            int extra = threads.size() - OrebfuscatorConfig.ProcessingThreads();
-            int i;
-            if (extra > 0) {
-                for(i = extra; i > 0; --i) {
-                    ((OrebfuscatorCalculationThread)threads.get(i - 1)).kill = true;
-                    threads.remove(i - 1);
-                }
-            } else if (extra < 0) {
-                for(i = 0; i < -extra; ++i) {
-                    OrebfuscatorCalculationThread thread = new OrebfuscatorCalculationThread();
-                    thread.start();
-                    thread.setName("Orebfuscator Calculation Thread");
-                    threads.add(thread);
-                }
+        if (threads.size() == OrebfuscatorConfig.ProcessingThreads())
+            return;
+        int runningThreads = 0;
+        for (Thread thread : threads) {
+            if (thread.isAlive() && !thread.isInterrupted() && !((OrebfuscatorCalculationThread) thread).kill) {
+                runningThreads = runningThreads + 1;
+            } else {
+                System.out.println("A random semidead thread has been found, code: jKis89");
             }
+        }
 
+        int extra = runningThreads - OrebfuscatorConfig.ProcessingThreads();
+        if (extra > 0) {
+            for (int i = extra; i > 0; i--) {
+                threads.get(i - 1).kill = true;
+                threads.remove(i - 1);
+            }
+        } else if (extra < 0) {
+            for (int i = 0; i < -extra; i++) {
+                OrebfuscatorCalculationThread thread = new OrebfuscatorCalculationThread();
+                thread.start();
+                thread.setName("Orebfuscator Calculation Thread");
+                threads.add(thread);
+            }
         }
     }
 
     public void run() {
-        while(!this.isInterrupted() && !this.kill) {
+        while (!this.isInterrupted() && !kill) {
             try {
-                this.handle();
-            } catch (Exception var2) {
-                var2.printStackTrace();
+                handle();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-
     }
 
     private void handle() {
         try {
-            ObfuscatedPlayerPacket packet = (ObfuscatedPlayerPacket)queue.take();
+            ObfuscatedPlayerPacket packet = queue.take();
             Calculations.Obfuscate(packet.packet, packet.player);
-        } catch (Exception var2) {
-            var2.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
     }
 
     public static void Queue(Packet51MapChunk packet, CraftPlayer player) {
-        while(true) {
+        while (true) {
             try {
                 queue.put(new ObfuscatedPlayerPacket(player, packet));
                 return;
-            } catch (Exception var3) {
-                var3.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

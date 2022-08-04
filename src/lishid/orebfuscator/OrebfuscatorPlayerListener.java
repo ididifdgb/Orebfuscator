@@ -10,6 +10,7 @@ import java.util.EventListener;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.legacyminecraft.poseidon.PoseidonPlugin;
 import com.legacyminecraft.poseidon.event.PlayerSendPacketEvent;
 import com.legacyminecraft.poseidon.event.PoseidonCustomListener;
 import lishid.orebfuscator.utils.Calculations;
@@ -18,10 +19,9 @@ import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.NetworkManager;
 import net.minecraft.server.Packet51MapChunk;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.command.Command;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -60,6 +60,29 @@ public class OrebfuscatorPlayerListener implements PoseidonCustomListener {
     @EventHandler(priority = Event.Priority.Monitor)
     public void onPlayerJoin(PlayerJoinEvent event) {
 //        this.TryUpdateNetServerHandler(event.getPlayer());
+
+        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+            long currentTime = (System.currentTimeMillis() / 1000L);
+            if (currentTime - Orebfuscator.lastSentPacket > 60) {
+                System.out.println("Oreobfuscator is restarting the server as it most likely has stopped sending packets or something. I hate this fucking plugin so much");
+
+                ((CraftServer) Bukkit.getServer()).setShuttingdown(true);
+
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    player.saveData();
+                    player.kickPlayer(ChatColor.RED + "Server is shutting down, please rejoin later.");
+                }
+                for (World world : Bukkit.getWorlds()) {
+                    world.save();
+                }
+                Bukkit.getScheduler().scheduleSyncDelayedTask(new PoseidonPlugin(), () -> {
+                    Bukkit.broadcastMessage("Stopping the server..");
+                    Bukkit.shutdown();
+                }, 100);
+
+            }
+        }, 200L);
+
     }
 
     @EventHandler(priority = Event.Priority.Monitor)

@@ -15,11 +15,12 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Orebfuscator extends JavaPlugin {
-//    private final OrebfuscatorBlockListener blockListener = new OrebfuscatorBlockListener(this);
+    //    private final OrebfuscatorBlockListener blockListener = new OrebfuscatorBlockListener(this);
 //    private final OrebfuscatorEntityListener entityListener = new OrebfuscatorEntityListener(this);
     private final OrebfuscatorPlayerListener playerListener = new OrebfuscatorPlayerListener(this);
     public static boolean usingSpout = false;
     public static Orebfuscator mainPlugin;
+    public static long lastSentPacket = System.currentTimeMillis() / 1000L;
 
     public Orebfuscator() {
     }
