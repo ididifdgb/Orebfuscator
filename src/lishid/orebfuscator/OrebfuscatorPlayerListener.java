@@ -38,7 +38,7 @@ import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 public class OrebfuscatorPlayerListener implements PoseidonCustomListener {
-    Orebfuscator plugin;
+    private Orebfuscator plugin;
     public static HashMap<String, Block> blockLog = new HashMap();
 
     public OrebfuscatorPlayerListener(Orebfuscator plugin) {
@@ -65,28 +65,48 @@ public class OrebfuscatorPlayerListener implements PoseidonCustomListener {
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
 //            long currentTime = (System.currentTimeMillis() / 1000L);
-            if(Bukkit.getOnlinePlayers().length == 0) {
+            if (Bukkit.getOnlinePlayers().length == 0) {
                 return;
             }
-            if (Orebfuscator.lastPacketSentAttempt - Orebfuscator.lastSentPacket > 10) {
-                System.out.println("Oreobfuscator is restarting the server as it most likely has stopped sending packets or something. I hate this fucking plugin so much");
+            if (Orebfuscator.lastPacketSentAttempt - Orebfuscator.lastSentPacket > 30 && !plugin.isShutdownState()) {
+                plugin.setShutdownState(true);
+                //Warn players that the server will shutdown
+                Bukkit.broadcastMessage(ChatColor.WHITE + "[" + ChatColor.RED + "Orebfuscator" + ChatColor.WHITE + "] " + ChatColor.RED + "The server will shutdown in 30 seconds due to a internal error in the Orebfuscator plugin.");
+                Bukkit.broadcastMessage(ChatColor.WHITE + "[" + ChatColor.RED + "Orebfuscator" + ChatColor.WHITE + "] " + ChatColor.RED + "We are working to address this issue. Restarts are a temporary workaround until the issue is fixed.");
 
-                ((CraftServer) Bukkit.getServer()).setShuttingdown(true);
+                //Shutdown the server in 30 seconds
+                Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+                    System.out.println("Oreobfuscator is restarting the server as it most likely has stopped sending packets or something. I hate this fucking plugin so much");
 
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    player.saveData();
-                    player.kickPlayer(ChatColor.RED + "Server is restarting to resolve issues. Please rejoin shortly.");
-                }
-                for (World world : Bukkit.getWorlds()) {
-                    world.save();
-                }
-                Bukkit.getScheduler().scheduleSyncDelayedTask(new PoseidonPlugin(), () -> {
-                    Bukkit.broadcastMessage("Stopping the server..");
-                    Bukkit.shutdown();
-                }, 100);
+                    //Print some debug info
+                    System.out.println("Orebfuscator Debug: " +
+                            "Last Packet Sent Attempt: " + Orebfuscator.lastPacketSentAttempt + ", " +
+                            "Last Sent Packet: " + Orebfuscator.lastSentPacket + ", " +
+                            "Current Calculation Threads: " + OrebfuscatorCalculationThread.getThreads() + ", " +
+                            "Current Calculation Queue Size: " + OrebfuscatorCalculationThread.getQueueSize() + ", " +
+                            "Running Calculation Threads: " + OrebfuscatorCalculationThread.getRunningThreads());
+
+
+                    ((CraftServer) Bukkit.getServer()).setShuttingdown(true);
+
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        player.saveData();
+                        player.kickPlayer(ChatColor.RED + "Server is restarting to resolve issues. Please rejoin shortly.");
+                    }
+                    for (World world : Bukkit.getWorlds()) {
+                        world.save();
+                    }
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(new PoseidonPlugin(), () -> {
+                        Bukkit.broadcastMessage("Stopping the server..");
+                        Bukkit.shutdown();
+                    }, 100);
+                }, 20 * 30);
 
             }
-        }, 200L);
+
+
+
+            }, 200L);
 
     }
 

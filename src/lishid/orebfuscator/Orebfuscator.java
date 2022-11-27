@@ -23,6 +23,16 @@ public class Orebfuscator extends JavaPlugin {
     public static long lastSentPacket = System.currentTimeMillis() / 1000L;
     public static long lastPacketSentAttempt = (System.currentTimeMillis() / 1000L);
 
+    public boolean isShutdownState() {
+        return shutdownState;
+    }
+
+    public void setShutdownState(boolean shutdownState) {
+        this.shutdownState = shutdownState;
+    }
+
+    private boolean shutdownState = false;
+
     public Orebfuscator() {
     }
 

@@ -26,6 +26,22 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable {
         return threads.size() == OrebfuscatorConfig.ProcessingThreads();
     }
 
+    //Get Queue Size
+    public static int getQueueSize() {
+        return queue.size();
+    }
+
+    //Get number of running threads
+    public static int getRunningThreads() {
+        int running = 0;
+        for (OrebfuscatorCalculationThread thread : threads) {
+            if (thread.isAlive()) {
+                running++;
+            }
+        }
+        return running;
+    }
+
     public static void SyncThreads() {
         if (threads.size() == OrebfuscatorConfig.ProcessingThreads())
             return;
