@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package lishid.orebfuscator.utils;
 
 import gnu.trove.set.hash.TByteHashSet;
@@ -11,7 +6,6 @@ import java.lang.reflect.Field;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.zip.Deflater;
 
 import lishid.orebfuscator.Orebfuscator;
@@ -21,7 +15,6 @@ import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
 import net.minecraft.server.TileEntity;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -29,77 +22,60 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 public class Calculations {
-    private static final int CHUNK_SIZE = 81920;
-    private static final int REDUCED_DEFLATE_THRESHOLD = 20480;
-    private static final int DEFLATE_LEVEL_CHUNKS = 6;
-    private static final int DEFLATE_LEVEL_PARTS = 1;
-    private static Deflater deflater = new Deflater();
-    private static byte[] deflateBuffer = new byte[82020];
 
-    public Calculations() {
-    }
+    private static final Deflater deflater = new Deflater();
+    private static byte[] deflateBuffer = new byte[82020];
 
     public static void UpdateBlocksNearby(Block block) {
         if (OrebfuscatorConfig.Enabled() && !OrebfuscatorConfig.isTransparent((byte) block.getTypeId())) {
-            HashSet<Block> blocks = GetAjacentBlocks(block.getWorld(), new HashSet(), block, OrebfuscatorConfig.UpdateRadius());
+            HashSet<Block> blocks = GetAdjacentBlocks(new HashSet<>(), block, OrebfuscatorConfig.UpdateRadius());
             UpdateBlock(block);
-            Iterator var2 = blocks.iterator();
 
-            while (var2.hasNext()) {
-                Block nearbyBlock = (Block) var2.next();
+            for (Block nearbyBlock : blocks) {
                 UpdateBlock(nearbyBlock);
             }
-
         }
     }
 
-    public static HashSet<Block> GetAjacentBlocks(World world, HashSet<Block> allBlocks, Block block, int countdown) {
+    public static HashSet<Block> GetAdjacentBlocks(HashSet<Block> allBlocks, Block block, int countdown) {
         AddBlockCheck(allBlocks, block);
-        if (countdown == 0) {
-            return allBlocks;
-        } else {
-            GetAjacentBlocks(world, allBlocks, block.getRelative(BlockFace.UP), countdown - 1);
-            GetAjacentBlocks(world, allBlocks, block.getRelative(BlockFace.DOWN), countdown - 1);
-            GetAjacentBlocks(world, allBlocks, block.getRelative(BlockFace.NORTH), countdown - 1);
-            GetAjacentBlocks(world, allBlocks, block.getRelative(BlockFace.SOUTH), countdown - 1);
-            GetAjacentBlocks(world, allBlocks, block.getRelative(BlockFace.EAST), countdown - 1);
-            GetAjacentBlocks(world, allBlocks, block.getRelative(BlockFace.WEST), countdown - 1);
-            return allBlocks;
+        if (countdown != 0) {
+            GetAdjacentBlocks(allBlocks, block.getRelative(BlockFace.UP), countdown - 1);
+            GetAdjacentBlocks(allBlocks, block.getRelative(BlockFace.DOWN), countdown - 1);
+            GetAdjacentBlocks(allBlocks, block.getRelative(BlockFace.NORTH), countdown - 1);
+            GetAdjacentBlocks(allBlocks, block.getRelative(BlockFace.SOUTH), countdown - 1);
+            GetAdjacentBlocks(allBlocks, block.getRelative(BlockFace.EAST), countdown - 1);
+            GetAdjacentBlocks(allBlocks, block.getRelative(BlockFace.WEST), countdown - 1);
         }
+        return allBlocks;
     }
 
     public static void AddBlockCheck(HashSet<Block> allBlocks, Block block) {
-        if (block != null) {
-            if (OrebfuscatorConfig.isObfuscated((byte) block.getTypeId()) || OrebfuscatorConfig.isDarknessObfuscated((byte) block.getTypeId())) {
-                allBlocks.add(block);
-            }
+        if (block == null) return;
 
+        if (OrebfuscatorConfig.isObfuscated((byte) block.getTypeId()) ||
+            OrebfuscatorConfig.isDarknessObfuscated((byte) block.getTypeId())
+        ) {
+            allBlocks.add(block);
         }
     }
 
     public static void UpdateBlock(Block block) {
-        if (block != null) {
-            HashSet<CraftPlayer> players = new HashSet();
-            Iterator var2 = block.getWorld().getPlayers().iterator();
+        if (block == null) return;
+        HashSet<CraftPlayer> players = new HashSet<>();
 
-            while (var2.hasNext()) {
-                Player player = (Player) var2.next();
-                if (Math.abs(player.getLocation().getX() - (double) block.getX()) < 176.0D && Math.abs(player.getLocation().getZ() - (double) block.getZ()) < 176.0D) {
-                    players.add((CraftPlayer) player);
-                }
+        for (Player player : block.getWorld().getPlayers()) {
+            if (Math.abs(player.getLocation().getX() - (double) block.getX()) < 176.0D && Math.abs(player.getLocation().getZ() - (double) block.getZ()) < 176.0D) {
+                players.add((CraftPlayer) player);
             }
+        }
 
-            var2 = players.iterator();
-
-            while (var2.hasNext()) {
-                CraftPlayer player2 = (CraftPlayer) var2.next();
-                player2.sendBlockChange(block.getLocation(), block.getTypeId(), block.getData());
-            }
-
+        for (CraftPlayer player2 : players) {
+            player2.sendBlockChange(block.getLocation(), block.getTypeId(), block.getData());
         }
     }
 
-    public static boolean GetAjacentBlocksTypeID(BlockInfo info, TByteHashSet IDPool, int index, int x, int y, int z, int countdown) {
+    public static boolean GetAdjacentBlocksTypeID(BlockInfo info, TByteHashSet IDPool, int index, int x, int y, int z, int countdown) {
         byte id = 0;
         if (y > 126) {
             return true;
@@ -117,13 +93,13 @@ public class Calculations {
                     IDPool.add(id);
                 }
 
-                return countdown != 0 && (GetAjacentBlocksTypeID(info, IDPool, index + 1, x, y + 1, z, countdown - 1) || GetAjacentBlocksTypeID(info, IDPool, index - 1, x, y - 1, z, countdown - 1) || GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1) || GetAjacentBlocksTypeID(info, IDPool, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1) || GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY, x, y, z + 1, countdown - 1) || GetAjacentBlocksTypeID(info, IDPool, index - info.sizeY, x, y, z - 1, countdown - 1));
+                return countdown != 0 && (GetAdjacentBlocksTypeID(info, IDPool, index + 1, x, y + 1, z, countdown - 1) || GetAdjacentBlocksTypeID(info, IDPool, index - 1, x, y - 1, z, countdown - 1) || GetAdjacentBlocksTypeID(info, IDPool, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1) || GetAdjacentBlocksTypeID(info, IDPool, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1) || GetAdjacentBlocksTypeID(info, IDPool, index + info.sizeY, x, y, z + 1, countdown - 1) || GetAdjacentBlocksTypeID(info, IDPool, index - info.sizeY, x, y, z - 1, countdown - 1));
             }
         }
     }
 
-    public static boolean GetAjacentBlocksHaveLight(BlockInfo info, int index, int x, int y, int z, int countdown) {
-        return info.world.getLightLevel(x + info.startX, y + info.startY, z + info.startZ) > 0 || countdown != 0 && (GetAjacentBlocksHaveLight(info, index + 1, x, y + 1, z, countdown - 1) || GetAjacentBlocksHaveLight(info, index - 1, x, y - 1, z, countdown - 1) || GetAjacentBlocksHaveLight(info, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1) || GetAjacentBlocksHaveLight(info, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1) || GetAjacentBlocksHaveLight(info, index + info.sizeY, x, y, z + 1, countdown - 1) || GetAjacentBlocksHaveLight(info, index - info.sizeY, x, y, z - 1, countdown - 1));
+    public static boolean GetAdjacentBlocksHaveLight(BlockInfo info, int index, int x, int y, int z, int countdown) {
+        return info.world.getLightLevel(x + info.startX, y + info.startY, z + info.startZ) > 0 || countdown != 0 && (GetAdjacentBlocksHaveLight(info, index + 1, x, y + 1, z, countdown - 1) || GetAdjacentBlocksHaveLight(info, index - 1, x, y - 1, z, countdown - 1) || GetAdjacentBlocksHaveLight(info, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1) || GetAdjacentBlocksHaveLight(info, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1) || GetAdjacentBlocksHaveLight(info, index + info.sizeY, x, y, z + 1, countdown - 1) || GetAdjacentBlocksHaveLight(info, index - info.sizeY, x, y, z - 1, countdown - 1));
     }
 
     public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player) {
@@ -156,13 +132,13 @@ public class Calculations {
                             boolean Obfuscate = false;
                             blockList.clear();
                             if (OrebfuscatorConfig.isObfuscated(info.original[index])) {
-                                Obfuscate = OrebfuscatorConfig.InitialRadius() == 0 || !GetAjacentBlocksTypeID(info, blockList, index, x, y, z, OrebfuscatorConfig.InitialRadius());
+                                Obfuscate = OrebfuscatorConfig.InitialRadius() == 0 || !GetAdjacentBlocksTypeID(info, blockList, index, x, y, z, OrebfuscatorConfig.InitialRadius());
                             }
 
                             if (!Obfuscate && OrebfuscatorConfig.DarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(info.original[index])) {
                                 if (OrebfuscatorConfig.InitialRadius() == 0) {
                                     Obfuscate = true;
-                                } else if (!GetAjacentBlocksHaveLight(info, index, x, y, z, OrebfuscatorConfig.InitialRadius())) {
+                                } else if (!GetAdjacentBlocksHaveLight(info, index, x, y, z, OrebfuscatorConfig.InitialRadius())) {
                                     Obfuscate = true;
                                 }
                             }
@@ -203,7 +179,7 @@ public class Calculations {
         while (!GetNetworkManagerQueue(handler.networkManager, 1048576 - 2 * (18 + packet.h))) {
             try {
                 Thread.sleep(5L);
-            } catch (Exception var11) {
+            } catch (Exception e) {
             }
         }
 
@@ -229,8 +205,8 @@ public class Calculations {
             Field p = networkManager.getClass().getDeclaredField("x");
             p.setAccessible(true);
             return Integer.parseInt(p.get(networkManager).toString()) < number;
-        } catch (Exception var3) {
-            var3.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -246,18 +222,18 @@ public class Calculations {
             byte[] messageDigest = algorithm.digest();
             StringBuffer hexString = new StringBuffer();
 
-            for (int i = 0; i < messageDigest.length; ++i) {
-                hexString.append(Integer.toHexString(255 & messageDigest[i]));
+            for (byte b : messageDigest) {
+                hexString.append(Integer.toHexString(255 & b));
             }
 
             return hexString.toString();
-        } catch (NoSuchAlgorithmException var5) {
-            var5.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
             return "";
         }
     }
 
-    public int getIndex(int x, int y, int z) {
+    public static int getIndex(int x, int y, int z) {
         return (x & 15) << 11 | (z & 15) << 7 | y & 127;
     }
 }

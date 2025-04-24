@@ -1,22 +1,17 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package lishid.orebfuscator.utils;
-
-import java.util.ArrayList;
-import java.util.concurrent.LinkedBlockingDeque;
 
 import net.minecraft.server.Packet51MapChunk;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
+
+import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class OrebfuscatorCalculationThread extends Thread implements Runnable {
     private boolean kill = false;
     //Global
     private static final int QUEUE_CAPACITY = 1024 * 10;
-    private static ArrayList<OrebfuscatorCalculationThread> threads = new ArrayList<OrebfuscatorCalculationThread>();
-    private static final LinkedBlockingDeque<ObfuscatedPlayerPacket> queue = new LinkedBlockingDeque<ObfuscatedPlayerPacket>(QUEUE_CAPACITY);
+    private static final ArrayList<OrebfuscatorCalculationThread> threads = new ArrayList<>();
+    private static final LinkedBlockingDeque<ObfuscatedPlayerPacket> queue = new LinkedBlockingDeque<>(QUEUE_CAPACITY);
 
     public static int getThreads() {
         return threads.size();
@@ -46,8 +41,8 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable {
         if (threads.size() == OrebfuscatorConfig.ProcessingThreads())
             return;
         int runningThreads = 0;
-        for (Thread thread : threads) {
-            if (thread.isAlive() && !thread.isInterrupted() && !((OrebfuscatorCalculationThread) thread).kill) {
+        for (OrebfuscatorCalculationThread thread : threads) {
+            if (thread.isAlive() && !thread.isInterrupted() && !thread.kill) {
                 runningThreads = runningThreads + 1;
             } else {
                 System.out.println("A random semidead thread has been found, code: jKis89");

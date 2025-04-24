@@ -1,14 +1,10 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package lishid.orebfuscator.utils;
 
 import net.minecraft.server.Packet51MapChunk;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 public class ObfuscatedPlayerPacket {
+
     CraftPlayer player;
     Packet51MapChunk packet;
 

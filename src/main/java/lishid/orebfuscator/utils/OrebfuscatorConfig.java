@@ -55,15 +55,11 @@ public class OrebfuscatorConfig {
     }
 
     public static int InitialRadius() {
-        if (InitialRadius < 0)
-            return 0;
-        return InitialRadius;
+        return InitialRadius < 0 ? 0 : InitialRadius;
     }
 
     public static int ProcessingThreads() {
-        if (ProcessingThreads < 0)
-            return 1;
-        return ProcessingThreads;
+        return ProcessingThreads < 0 ? 1 : ProcessingThreads;
     }
 
     public static boolean UpdateOnBreak() {
@@ -119,9 +115,9 @@ public class OrebfuscatorConfig {
     }
 
     public static String disabledWorlds() {
-        String retval = "";
+        StringBuilder retval = new StringBuilder();
         for (String world : DisabledWorlds)
-            retval = String.valueOf(retval) + world + ", ";
+            retval.append(world).append(", ");
         return retval.substring(0, retval.length() - 2);
     }
 
@@ -130,62 +126,62 @@ public class OrebfuscatorConfig {
     }
 
     public static void SetEngineMode(int data) {
-        SetData("Integers.EngineMode", Integer.valueOf(data));
+        SetData("Integers.EngineMode", data);
         EngineMode = data;
     }
 
     public static void SetUpdateRadius(int data) {
-        SetData("Integers.UpdateRadius", Integer.valueOf(data));
+        SetData("Integers.UpdateRadius", data);
         UpdateRadius = data;
     }
 
     public static void SetInitialRadius(int data) {
-        SetData("Integers.InitialRadius", Integer.valueOf(data));
+        SetData("Integers.InitialRadius", data);
         InitialRadius = data;
     }
 
     public static void SetProcessingThreads(int data) {
-        SetData("Integers.ProcessingThreads", Integer.valueOf(data));
+        SetData("Integers.ProcessingThreads", data);
         ProcessingThreads = data;
     }
 
     public static void SetUpdateOnBreak(boolean data) {
-        SetData("Booleans.UpdateOnBreak", Boolean.valueOf(data));
+        SetData("Booleans.UpdateOnBreak", data);
         UpdateOnBreak = data;
     }
 
     public static void SetUpdateOnDamage(boolean data) {
-        SetData("Booleans.UpdateOnDamage", Boolean.valueOf(data));
+        SetData("Booleans.UpdateOnDamage", data);
         UpdateOnDamage = data;
     }
 
     public static void SetUpdateOnPhysics(boolean data) {
-        SetData("Booleans.UpdateOnPhysics", Boolean.valueOf(data));
+        SetData("Booleans.UpdateOnPhysics", data);
         UpdateOnPhysics = data;
     }
 
     public static void SetUpdateOnExplosion(boolean data) {
-        SetData("Booleans.UpdateOnExplosion", Boolean.valueOf(data));
+        SetData("Booleans.UpdateOnExplosion", data);
         UpdateOnExplosion = data;
     }
 
     public static void SetDarknessHideBlocks(boolean data) {
-        SetData("Booleans.DarknessHideBlocks", Boolean.valueOf(data));
+        SetData("Booleans.DarknessHideBlocks", data);
         DarknessHideBlocks = data;
     }
 
     public static void SetNoObfuscationForOps(boolean data) {
-        SetData("Booleans.NoObfuscationForOps", Boolean.valueOf(data));
+        SetData("Booleans.NoObfuscationForOps", data);
         NoObfuscationForOps = data;
     }
 
     public static void SetNoObfuscationForPermission(boolean data) {
-        SetData("Booleans.NoObfuscationForPermission", Boolean.valueOf(data));
+        SetData("Booleans.NoObfuscationForPermission", data);
         NoObfuscationForPermission = data;
     }
 
     public static void SetEnabled(boolean data) {
-        SetData("Booleans.Enabled", Boolean.valueOf(data));
+        SetData("Booleans.Enabled", data);
         Enabled = data;
     }
 
@@ -200,13 +196,13 @@ public class OrebfuscatorConfig {
 
     private static boolean GetBoolean(String path, boolean defaultData) {
         if (Orebfuscator.mainPlugin.getConfiguration().getProperty(path) == null)
-            SetData(path, Boolean.valueOf(defaultData));
+            SetData(path, defaultData);
         return Orebfuscator.mainPlugin.getConfiguration().getBoolean(path, defaultData);
     }
 
     private static int GetInt(String path, int defaultData) {
         if (Orebfuscator.mainPlugin.getConfiguration().getProperty(path) == null)
-            SetData(path, Integer.valueOf(defaultData));
+            SetData(path, defaultData);
         return Orebfuscator.mainPlugin.getConfiguration().getInt(path, defaultData);
     }
 
@@ -230,14 +226,13 @@ public class OrebfuscatorConfig {
     private static byte[] IntListToByteArray(List<Integer> list) {
         byte[] byteArray = new byte[list.size()];
         for (int i = 0; i < byteArray.length; i++)
-            byteArray[i] = (byte)((Integer)list.get(i)).intValue();
+            byteArray[i] = (byte) list.get(i).intValue();
         return byteArray;
     }
 
     private static TByteHashSet IntListToTByteHashSet(List<Integer> list) {
         TByteHashSet bytes = new TByteHashSet();
-        for (int i = 0; i < list.size(); i++)
-            bytes.add((byte)((Integer)list.get(i)).intValue());
+        for (Integer integer : list) bytes.add((byte) integer.intValue());
         return bytes;
     }
 
@@ -262,20 +257,19 @@ public class OrebfuscatorConfig {
         NoObfuscationForOps = GetBoolean("Booleans.NoObfuscationForOps", true);
         NoObfuscationForPermission = GetBoolean("Booleans.NoObfuscationForPermission", true);
         Enabled = GetBoolean("Booleans.Enabled", true);
-        TransparentBlocks = IntListToTByteHashSet(GetIntList("Lists.TransparentBlocks", Arrays.asList(new Integer[] {
-                Integer.valueOf(6), Integer.valueOf(8), Integer.valueOf(9), Integer.valueOf(10), Integer.valueOf(11), Integer.valueOf(18), Integer.valueOf(20), Integer.valueOf(26), Integer.valueOf(27), Integer.valueOf(28),
-                Integer.valueOf(30), Integer.valueOf(31), Integer.valueOf(32), Integer.valueOf(34), Integer.valueOf(37), Integer.valueOf(38), Integer.valueOf(39), Integer.valueOf(40), Integer.valueOf(44), Integer.valueOf(50),
-                Integer.valueOf(51), Integer.valueOf(52), Integer.valueOf(53), Integer.valueOf(54), Integer.valueOf(55), Integer.valueOf(59), Integer.valueOf(63), Integer.valueOf(64), Integer.valueOf(65), Integer.valueOf(66),
-                Integer.valueOf(67), Integer.valueOf(68), Integer.valueOf(69), Integer.valueOf(70), Integer.valueOf(71), Integer.valueOf(72), Integer.valueOf(75), Integer.valueOf(76), Integer.valueOf(77), Integer.valueOf(78),
-                Integer.valueOf(79), Integer.valueOf(81), Integer.valueOf(83), Integer.valueOf(85), Integer.valueOf(90), Integer.valueOf(92), Integer.valueOf(93), Integer.valueOf(94), Integer.valueOf(96), Integer.valueOf(101),
-                Integer.valueOf(102), Integer.valueOf(104), Integer.valueOf(105), Integer.valueOf(106), Integer.valueOf(107), Integer.valueOf(108), Integer.valueOf(109), Integer.valueOf(111), Integer.valueOf(113), Integer.valueOf(114),
-                Integer.valueOf(115) })));
-        ObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { Integer.valueOf(14), Integer.valueOf(15), Integer.valueOf(16), Integer.valueOf(21), Integer.valueOf(54), Integer.valueOf(56), Integer.valueOf(73), Integer.valueOf(74) })));
-        DarknessObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(new Integer[] { Integer.valueOf(48), Integer.valueOf(52) })));
-        LightEmissionBlocks = IntListToTByteHashSet(GetIntList("Lists.LightEmissionBlocks", Arrays.asList(new Integer[] {
-                Integer.valueOf(10), Integer.valueOf(11), Integer.valueOf(50), Integer.valueOf(51), Integer.valueOf(62), Integer.valueOf(74), Integer.valueOf(76), Integer.valueOf(89), Integer.valueOf(90), Integer.valueOf(91),
-                Integer.valueOf(94) })));
-        RandomBlocks = IntListToByteArray(GetIntList("Lists.RandomBlocks", Arrays.asList(new Integer[] { Integer.valueOf(5), Integer.valueOf(14), Integer.valueOf(15), Integer.valueOf(16), Integer.valueOf(21), Integer.valueOf(48), Integer.valueOf(56), Integer.valueOf(73) })));
+        TransparentBlocks = IntListToTByteHashSet(GetIntList("Lists.TransparentBlocks", Arrays.asList(
+                6, 8, 9, 10, 11, 18, 20, 26, 27, 28, 30,
+                31, 32, 34, 37, 38, 39, 40, 44, 50, 51,
+                52, 53, 54, 55, 59, 63, 64, 65, 66, 67,
+                68, 69, 70, 71, 72, 75, 76, 77, 78, 79,
+                81, 83, 85, 90, 92, 93, 94, 96, 101, 102,
+                104, 105, 106, 107, 108, 109, 111, 113,
+                114, 115
+        )));
+        ObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.ObfuscateBlocks", Arrays.asList(14, 15, 16, 21, 54, 56, 73, 74)));
+        DarknessObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(48, 52)));
+        LightEmissionBlocks = IntListToTByteHashSet(GetIntList("Lists.LightEmissionBlocks", Arrays.asList(10, 11, 50, 51, 62, 74, 76, 89, 90, 91, 94)));
+        RandomBlocks = IntListToByteArray(GetIntList("Lists.RandomBlocks", Arrays.asList(5, 14, 15, 16, 21, 48, 56, 73)));
         DisabledWorlds = GetStringList("Lists.DisabledWorlds", DisabledWorlds);
         Save();
     }
