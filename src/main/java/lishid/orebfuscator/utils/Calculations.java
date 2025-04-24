@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.Deflater;
 
 import lishid.orebfuscator.Orebfuscator;
@@ -25,6 +26,7 @@ public class Calculations {
 
     private static final Deflater deflater = new Deflater();
     private static byte[] deflateBuffer = new byte[82020];
+    private static final ReentrantLock lock = new ReentrantLock(true);
 
     public static void UpdateBlocksNearby(Block block) {
         if (OrebfuscatorConfig.Enabled() && !OrebfuscatorConfig.isTransparent((byte) block.getTypeId())) {
@@ -159,22 +161,29 @@ public class Calculations {
         }
 
         index = packet.rawData.length;
-        if (deflateBuffer.length < index + 100) {
-            deflateBuffer = new byte[index + 100];
-        }
 
-        deflater.reset();
-        deflater.setLevel(index < 20480 ? 1 : 6);
-        deflater.setInput(packet.rawData);
-        deflater.finish();
-        x = deflater.deflate(deflateBuffer);
-        if (x == 0) {
+        try {
+            lock.lock();
+
+            if (deflateBuffer.length < index + 100) {
+                deflateBuffer = new byte[index + 100];
+            }
+
+            deflater.reset();
+            deflater.setLevel(index < 20480 ? 1 : 6);
+            deflater.setInput(packet.rawData);
+            deflater.finish();
             x = deflater.deflate(deflateBuffer);
-        }
+            if (x == 0) {
+                x = deflater.deflate(deflateBuffer);
+            }
 
-        packet.g = new byte[x];
-        packet.h = x;
-        System.arraycopy(deflateBuffer, 0, packet.g, 0, x);
+            packet.g = new byte[x];
+            packet.h = x;
+            System.arraycopy(deflateBuffer, 0, packet.g, 0, x);
+        } finally {
+            lock.unlock();
+        }
 
         while (!GetNetworkManagerQueue(handler.networkManager, 1048576 - 2 * (18 + packet.h))) {
             try {
