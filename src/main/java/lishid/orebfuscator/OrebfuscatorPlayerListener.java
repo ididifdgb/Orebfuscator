@@ -161,7 +161,7 @@ public class OrebfuscatorPlayerListener implements PoseidonCustomListener {
     @EventHandler(priority = Event.Priority.Monitor)
     public void onBlockPhysics(BlockPhysicsEvent event) {
         if (!event.isCancelled() && OrebfuscatorConfig.UpdateOnPhysics()) {
-            if (event.getBlock().getType() == Material.SAND && event.getBlock().getType() == Material.GRAVEL) {
+            if (event.getBlock().getType() == Material.SAND || event.getBlock().getType() == Material.GRAVEL) {
                 Calculations.UpdateBlocksNearby(event.getBlock());
             }
         }
