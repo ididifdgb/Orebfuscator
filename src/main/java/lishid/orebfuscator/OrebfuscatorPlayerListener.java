@@ -6,6 +6,7 @@ import com.legacyminecraft.poseidon.event.PoseidonCustomListener;
 import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.OrebfuscatorCalculationThread;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
+import lishid.orebfuscator.utils.PermissionRelay;
 import net.minecraft.server.Packet51MapChunk;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -40,18 +41,24 @@ public class OrebfuscatorPlayerListener implements PoseidonCustomListener {
         this.plugin = plugin;
     }
 
-
     @EventHandler(priority = Event.Priority.Monitor)
     public void onSendPacket(PlayerSendPacketEvent event) {
-        if (event.getPacketID() == 51 && event.getUsername() != null && Bukkit.getPlayer(event.getUsername()) != null) {
-            event.setCancelled(true); //Orbfuscator will worry about dispatching the packet
-            Orebfuscator.lastPacketSentAttempt = (System.currentTimeMillis() / 1000L); //Reset the last packet sent attempt
-            if (!OrebfuscatorCalculationThread.CheckThreads()) {
-                OrebfuscatorCalculationThread.SyncThreads();
-            }
+        if (event.getPacketID() != 51 || event.getUsername() == null) return;
 
-            OrebfuscatorCalculationThread.Queue((Packet51MapChunk) event.getPacket(), (CraftPlayer) Bukkit.getPlayer(event.getUsername()));
+        Player player = Bukkit.getPlayer(event.getUsername());
+        if (player == null) return;
+
+        if (OrebfuscatorConfig.NoObfuscationForOps() && player.isOp()) return;
+        if (OrebfuscatorConfig.NoObfuscationForPermission() &&
+            PermissionRelay.hasPermission(player, "Orebfuscator.exempt")) return;
+
+        event.setCancelled(true); //Orbfuscator will worry about dispatching the packet
+        Orebfuscator.lastPacketSentAttempt = (System.currentTimeMillis() / 1000L); //Reset the last packet sent attempt
+        if (!OrebfuscatorCalculationThread.CheckThreads()) {
+            OrebfuscatorCalculationThread.SyncThreads();
         }
+
+        OrebfuscatorCalculationThread.Queue((Packet51MapChunk) event.getPacket(), (CraftPlayer) player);
     }
 
     @EventHandler(priority = Event.Priority.Monitor)
