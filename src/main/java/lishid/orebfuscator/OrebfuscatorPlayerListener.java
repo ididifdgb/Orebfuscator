@@ -52,11 +52,8 @@ public class OrebfuscatorPlayerListener implements PoseidonCustomListener {
         if (OrebfuscatorConfig.NoObfuscationForPermission() &&
             PermissionRelay.hasPermission(player, "Orebfuscator.exempt")) return;
 
-        event.setCancelled(true); //Orbfuscator will worry about dispatching the packet
+        event.setCancelled(true); //Orebfuscator will worry about dispatching the packet
         Orebfuscator.lastPacketSentAttempt = (System.currentTimeMillis() / 1000L); //Reset the last packet sent attempt
-        if (!OrebfuscatorCalculationThread.CheckThreads()) {
-            OrebfuscatorCalculationThread.SyncThreads();
-        }
 
         OrebfuscatorCalculationThread.Queue((Packet51MapChunk) event.getPacket(), (CraftPlayer) player);
     }

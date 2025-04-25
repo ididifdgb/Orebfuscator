@@ -5,6 +5,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.zip.Deflater;
 
 public class OrebfuscatorCalculationThread extends Thread implements Runnable {
     private boolean kill = false;
@@ -12,6 +13,8 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable {
     private static final int QUEUE_CAPACITY = 1024 * 10;
     private static final ArrayList<OrebfuscatorCalculationThread> threads = new ArrayList<>();
     private static final LinkedBlockingDeque<ObfuscatedPlayerPacket> queue = new LinkedBlockingDeque<>(QUEUE_CAPACITY);
+    public final Deflater deflater = new Deflater();
+    public byte[] deflateBuffer = new byte[82020];
 
     public static int getThreads() {
         return threads.size();
@@ -78,7 +81,7 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable {
     private void handle() {
         try {
             ObfuscatedPlayerPacket packet = queue.take();
-            Calculations.Obfuscate(packet.packet, packet.player);
+            Calculations.Obfuscate(this, packet.packet, packet.player);
         } catch (Exception e) {
             e.printStackTrace();
         }

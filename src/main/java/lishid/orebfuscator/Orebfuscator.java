@@ -1,7 +1,9 @@
 package lishid.orebfuscator;
 
 import lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
+import lishid.orebfuscator.utils.OrebfuscatorCalculationThread;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -9,7 +11,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Orebfuscator extends JavaPlugin {
 
     private final OrebfuscatorPlayerListener playerListener = new OrebfuscatorPlayerListener(this);
-    public static boolean usingSpout = false;
     public static Orebfuscator mainPlugin;
     public static long lastSentPacket = System.currentTimeMillis() / 1000L;
     public static long lastPacketSentAttempt = (System.currentTimeMillis() / 1000L);
@@ -37,6 +38,12 @@ public class Orebfuscator extends JavaPlugin {
             System.out.println("[Orebfuscator] version " + pdfFile.getVersion() + " initialization complete!");
             this.getCommand("ofc").setExecutor(new OrebfuscatorCommandExecutor());
         }
+
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
+            if (!OrebfuscatorCalculationThread.CheckThreads()) {
+                OrebfuscatorCalculationThread.SyncThreads();
+            }
+        }, 0, 60 * 20);
     }
 
     public void onDisable() {

@@ -6,8 +6,6 @@ import java.lang.reflect.Field;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.zip.Deflater;
 
 import lishid.orebfuscator.Orebfuscator;
 import net.minecraft.server.NetServerHandler;
@@ -23,10 +21,6 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 public class Calculations {
-
-    private static final Deflater deflater = new Deflater();
-    private static byte[] deflateBuffer = new byte[82020];
-    private static final ReentrantLock lock = new ReentrantLock(true);
 
     public static void UpdateBlocksNearby(Block block) {
         if (OrebfuscatorConfig.Enabled() && !OrebfuscatorConfig.isTransparent((byte) block.getTypeId())) {
@@ -104,11 +98,9 @@ public class Calculations {
         return info.world.getLightLevel(x + info.startX, y + info.startY, z + info.startZ) > 0 || countdown != 0 && (GetAdjacentBlocksHaveLight(info, index + 1, x, y + 1, z, countdown - 1) || GetAdjacentBlocksHaveLight(info, index - 1, x, y - 1, z, countdown - 1) || GetAdjacentBlocksHaveLight(info, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1) || GetAdjacentBlocksHaveLight(info, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1) || GetAdjacentBlocksHaveLight(info, index + info.sizeY, x, y, z + 1, countdown - 1) || GetAdjacentBlocksHaveLight(info, index - info.sizeY, x, y, z - 1, countdown - 1));
     }
 
-    public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player) {
+    public static void Obfuscate(OrebfuscatorCalculationThread oct, Packet51MapChunk packet, CraftPlayer player) {
         NetServerHandler handler = player.getHandle().netServerHandler;
-        if (!Orebfuscator.usingSpout) {
-            packet.k = false;
-        }
+        packet.k = false;
 
         BlockInfo info = new BlockInfo();
         info.world = player.getHandle().world.getWorld().getHandle();
@@ -161,36 +153,22 @@ public class Calculations {
         }
 
         index = packet.rawData.length;
-
-        try {
-            lock.lock();
-
-            if (deflateBuffer.length < index + 100) {
-                deflateBuffer = new byte[index + 100];
-            }
-
-            deflater.reset();
-            deflater.setLevel(index < 20480 ? 1 : 6);
-            deflater.setInput(packet.rawData);
-            deflater.finish();
-            x = deflater.deflate(deflateBuffer);
-            if (x == 0) {
-                x = deflater.deflate(deflateBuffer);
-            }
-
-            packet.g = new byte[x];
-            packet.h = x;
-            System.arraycopy(deflateBuffer, 0, packet.g, 0, x);
-        } finally {
-            lock.unlock();
+        if (oct.deflateBuffer.length < index + 100) {
+            oct.deflateBuffer = new byte[index + 100];
         }
 
-        while (!GetNetworkManagerQueue(handler.networkManager, 1048576 - 2 * (18 + packet.h))) {
-            try {
-                Thread.sleep(5L);
-            } catch (Exception e) {
-            }
+        oct.deflater.reset();
+        oct.deflater.setLevel(index < 20480 ? 1 : 6);
+        oct.deflater.setInput(packet.rawData);
+        oct.deflater.finish();
+        x = oct.deflater.deflate(oct.deflateBuffer);
+        if (x == 0) {
+            x = oct.deflater.deflate(oct.deflateBuffer);
         }
+
+        packet.g = new byte[x];
+        packet.h = x;
+        System.arraycopy(oct.deflateBuffer, 0, packet.g, 0, x);
 
         handler.networkManager.queue(packet);
         Bukkit.getServer().getScheduler().callSyncMethod(Orebfuscator.mainPlugin, () -> Orebfuscator.lastSentPacket = (System.currentTimeMillis() / 1000L));
